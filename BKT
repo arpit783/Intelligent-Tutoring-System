@@ -1,0 +1,176 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Aug 27 22:18:07 2020
+
+@author: Hp
+"""
+
+import math as m
+import numpy as np
+import pandas as pd
+
+raw_data = pd.read_csv('./data.csv', sep=',')
+raw_data.shape
+
+raw_data.head(3)
+
+mod1_data = raw_data.set_index(['Student','StepID'])
+
+mod1_data.sortlevel(inplace=True)
+
+mod1_data.insert(2,'P(L)1',0.0)
+mod1_data.insert(3,'P(C)1',0.0)
+
+mod1_data.insert(5,'P(L)27',0.0)
+mod1_data.insert(6,'P(C)27',0.0)
+
+mod1_data.insert(8,'P(L)24',0.0)
+mod1_data.insert(9,'P(C)24',0.0)
+
+mod1_data.insert(11,'P(L)14',0.0)
+mod1_data.insert(12,'P(C)14',0.0)
+
+mod1_data.insert(14,'P(L)22',0.0)
+mod1_data.insert(15,'P(C)22',0.0)
+
+mod1_data.insert(17,'P(L)20',0.0)
+mod1_data.insert(18,'P(C)20',0.0)
+
+mod1_data.insert(20,'P(L)21',0.0)
+mod1_data.insert(21,'P(C)21',0.0)
+
+mod1_data.head(5)
+
+
+P_L0 = 0.5
+P_T = 0.1
+P_S = 0.1
+P_G = 0.1
+
+
+def P_L_func ( correct, P_L_previous):
+  
+  if correct==1:
+    P_L_obs = (P_L_previous*(1-P_S))/(P_L_previous*(1-P_S) + (1-P_L_previous)*(1-P_G))
+  else:
+    P_L_obs = (P_L_previous*P_S)/(P_L_previous*P_S + (1-P_L_previous)*(1-P_G))
+  
+  P_L_current = P_L_obs + (1-P_L_obs)*P_T
+  
+  return P_L_current
+
+def P_C_func (P_L_previous):
+  P_C_current = P_L_previous*(1-P_S) + (1-P_L_previous)*P_G
+  
+  return P_C_current
+
+
+for Student, stuInfo in mod1_data.groupby(level=[0]):
+  rows = len(stuInfo.index)
+  row_loc = 0
+
+  print('Student ID: %s' %(Student))
+  
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)1')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)1')] = P_L0
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)27')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)27')] = P_L0
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)24')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)24')] = P_L0
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)14')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)14')] = P_L0
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)22')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)22')] = P_L0
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)20')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)20')] = P_L0
+
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(L)21')] = P_L0
+  stuInfo.iloc[0,stuInfo.columns.get_loc('P(C)21')] = P_L0
+  
+
+  for index, row in stuInfo.iterrows():
+    
+
+    if row_loc >0:
+    
+      
+      if stuInfo.iloc[row_loc]['KC_1'] == 0.0:
+        
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)1')] = stuInfo.iloc[row_loc-1]['P(L)1']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)1')] = stuInfo.iloc[row_loc-1]['P(C)1']
+      else:
+        
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)1')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)1'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)1')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)1'])
+    
+    
+     
+      if stuInfo.iloc[row_loc]['KC_27'] == 0.0:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)27')] = stuInfo.iloc[row_loc-1]['P(L)27']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)27')] = stuInfo.iloc[row_loc-1]['P(C)27']
+      else:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)27')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)27'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)27')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)27'])      
+    
+    
+      
+      if stuInfo.iloc[row_loc]['KC_24'] == 0.0:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)24')] = stuInfo.iloc[row_loc-1]['P(L)24']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)24')] = stuInfo.iloc[row_loc-1]['P(C)24']
+      else:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)24')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)24'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)24')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)24'])
+        
+      
+      if stuInfo.iloc[row_loc]['KC_14'] == 0.0:
+        
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)14')] = stuInfo.iloc[row_loc-1]['P(L)14']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)14')] = stuInfo.iloc[row_loc-1]['P(C)14']
+      else:
+        
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)14')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)14'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)14')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)14'])
+        
+     
+      if stuInfo.iloc[row_loc]['KC_22'] == 0.0:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)22')] = stuInfo.iloc[row_loc-1]['P(L)22']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)22')] = stuInfo.iloc[row_loc-1]['P(C)22']
+      else:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)22')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)22'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)22')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)22'])
+        
+      
+      if stuInfo.iloc[row_loc]['KC_20'] == 0.0:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)20')] = stuInfo.iloc[row_loc-1]['P(L)20']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)20')] = stuInfo.iloc[row_loc-1]['P(C)20']
+      else:
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)20')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)20'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)20')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)20'])
+        
+      
+      if stuInfo.iloc[row_loc]['KC_21'] == 0.0:
+        
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)21')] = stuInfo.iloc[row_loc-1]['P(L)21']
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)21')] = stuInfo.iloc[row_loc-1]['P(C)21']
+      else:
+        
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(L)21')] = P_L_func ( stuInfo.iloc[row_loc]['Correct'], stuInfo.iloc[row_loc-1]['P(L)21'])
+        stuInfo.iloc[row_loc,stuInfo.columns.get_loc('P(C)21')] = P_C_func ( stuInfo.iloc[row_loc-1]['P(L)21'])
+        
+    if row_loc < rows: row_loc += 1
+    
+  
+
+  
+  stuInfo.to_csv(Student+'.csv', index=True, header=True, float_format='%.3f')
+  print('Saved %s rows' %(rows))
+  
+
+
+stuInfo
